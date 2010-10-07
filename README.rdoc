@@ -1,0 +1,46 @@
+= DryValidations
+
+
+
+== Summary
+
+A small module that helps you dry up your rails validations
+
+
+
+== Example
+    # Old validations
+    class Foo < ActiveRecord::Base
+      validates_presence_of :foo
+      validates_presence_of :bar
+      validates_length_of :bla1, :minimum => 1, :maximum => 200
+      validates_length_of :bla2, :minimum => 1, :maximum => 200
+      validates_length_of :bla3, :minimum => 1, :maximum => 300
+      validates_length_of :bla4, :minimum => 1, :maximum => 200
+      validates_length_of :blu1, :minimum => 1, :maximum => 200, :if => :has_blu?
+      validates_length_of :blu2, :minimum => 1, :maximum => 200, :if => :has_blu?
+      validates_length_of :blu3, :minimum => 1, :maximum => 300, :if => :has_blu?
+      validates_length_of :blu4, :minimum => 1, :maximum => 200, :if => :has_blu?
+    end
+  
+    # Converted to
+    class Foo < ActiveRecord::Base
+      validates do
+        presence_of :foo
+        presence_of :bar
+  
+        with_options :minimum => 1, :maximum => 200 do
+          length_of :bla1 # minimum and maximum are "inherited" from `with_options`
+          length_of :bla2
+          length_of :bla3, :maximum => 300 # local maximum overrides the inherited one
+          length_of :bla4
+  
+          with_options :if => :has_blu? do
+            length_of :blu1 # nested `with_options` are merged
+            length_of :blu2
+            length_of :blu3, :maximum => 300
+            length_of :blu4
+          end
+        end
+      end
+    end
